@@ -31,8 +31,11 @@
 2. UI와 기능 합치기 
 3. 에러 잡기
 4. 추가 기능 생각
-``` 
 
+문제점
+ffmpeg가 설치 안된 컴퓨터에서는 동작하지 않음
+``` 
+</br>
 
 ![메인화면](https://github.com/wlxo0401/video_split/blob/main/readme_img/1.PNG) 
 
