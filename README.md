@@ -33,6 +33,7 @@
 4. 추가 기능 생각
 
 문제점
+
 ffmpeg가 설치 안된 컴퓨터에서는 동작하지 않음
 ``` 
 </br>
@@ -56,3 +57,5 @@ ffmpeg가 설치 안된 컴퓨터에서는 동작하지 않음
 ![나누기 완료](https://github.com/wlxo0401/video_split/blob/main/readme_img/5.PNG) 
 
 나눈 결과물
+
+<hr>
