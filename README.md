@@ -59,3 +59,29 @@ ffmpeg가 설치 안된 컴퓨터에서는 동작하지 않음
 나눈 결과물
 
 <hr>
+
+```
+2021-04-16 ~ 2021-04-
+
+1. 프레임화된 영상을 다시 만들어주는 기능 예정
+2. UI 변경
+3. 프레임 폴더 선택 기능 추가
+
+예정 
+1. 불러온 프레임 수 확인
+2. 해당 폴더에 영상 저장용 폴더 생성
+3. 프레임 합치기
+
+문제점
+
+원본 영상이 없다고 가정하고 만들어서 합칠때 프레임을 
+지정하기가 고민됨
+``` 
+
+![바뀐 UI1](https://github.com/wlxo0401/video_split/blob/main/readme_img/6.PNG) 
+
+바뀐 UI 모습 탭1
+
+![바뀐 UI2](https://github.com/wlxo0401/video_split/blob/main/readme_img/6.PNG) 
+
+바뀐 UI 모습 탭2
