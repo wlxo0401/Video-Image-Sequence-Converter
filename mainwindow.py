@@ -36,7 +36,7 @@ class mainwindow(QMainWindow, form_class):
         # 내보내기 버튼
         self.frame_load_btn.clicked.connect(self.frame_load)
         # 내보내기 버튼
-        self.frame_sum_btn.clicked.connect(self.video_export)
+        self.frame_sum_btn.clicked.connect(self.frame_export)
 
 
         # self.info_btn.clicked.connect(self.info)
@@ -54,7 +54,7 @@ class mainwindow(QMainWindow, form_class):
         self.video_path = ""
         if self.video_file_path:
             # 이미지 리스트에 사진 경로 담기
-            self.video_name = self.video_file_path.split("/")[-1]
+            self.video_name = self.video_file_path.split("/")[-1].replace(" ", "_")
             self.name_lbl.setText(self.video_name)
             temp = self.video_file_path.split("/")
             del temp[-1]
@@ -68,9 +68,9 @@ class mainwindow(QMainWindow, form_class):
         self.load_btn.setEnabled(False)
         self.export_btn.setEnabled(False)
         # 폴더 생성
-        self.createFolder(self.video_path, self.video_name.split(".")[0] + "_split")
+        self.createFolder(self.video_path, self.video_name.split(".")[0].replace(" ", "_") + "_split")
         # 스플릿 시작
-        self.thread = Thread(self.video_file_path, self.folder, self.video_name.split(".")[0])
+        self.thread = Thread(self.video_file_path, self.folder, self.video_name.split(".")[0].replace(" ", "_"))
         # 피니쉬 신호 받기
         self.thread.msg_sig.connect(self.set_text)
         self.thread.end_sig.connect(self.thread_end)
@@ -80,14 +80,28 @@ class mainwindow(QMainWindow, form_class):
     def frame_load(self):
         # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
         self.frame_file_path = QFileDialog.getExistingDirectory(None, "파일 선택창", self.frame_file_path)
-        self.frame_list = list()
-        if self.video_file_path:
-            for file_name in os.listdir(self.frame_file_path):
-                self.frame_list.append(os.path.join(self.frame_file_path))
-            print(len(frame_list))
+        if self.frame_file_path:
+            self.frame_list = list()
+            if self.video_file_path:
+                for file_name in os.listdir(self.frame_file_path):
+                    self.frame_list.append(file_name)
+            self.frame_name = self.frame_list[0].split("_")
+            del self.frame_name[-1]
+            self.media_name = ""
+            for i in self.frame_name:
+                self.media_name += i + "_"
+            print(self.media_name)
+            self.frame_count_lbl.setText(str(len(self.frame_list)))
 
     def frame_export(self):
-        pass
+        self.createFolder(self.frame_file_path, "합친영상")
+        frame = int(self.frame_lineedit.text())
+        self.thread2 = Thread2(frame, self.frame_file_path, self.frame_name)
+        # 피니쉬 신호 받기
+        self.thread2.msg_sig.connect(self.set_text)
+        self.thread2.end_sig.connect(self.thread_end)
+        # 스타트
+        self.thread2.start()
 
     def createFolder(self, folder_path, folder_name):
         # 폴더 경로, 이름.  한번에 다받아서 진행해도됨
@@ -154,18 +168,16 @@ class Thread(QThread):
             self.msg_sig.emit("영상 나누기 완료")  
             self.end_sig.emit(0)
 
-        
-
 class Thread2(QThread):
     msg_sig = QtCore.pyqtSignal(str)
     end_sig = QtCore.pyqtSignal(int)
 
-    def __init__(self, original_folder: str = "", frame_path: str = "", completed_folder: str = "", media_name: str = "",debug=False):
+    def __init__(self, fps, frame_path: str = "", media_name: str = "", debug=False):
         QThread.__init__(self)
-        self.original_folder = original_folder
+        self.fps = fps
         self.frame_path = frame_path
-        self.completed_folder = completed_folder
         self.media_name = media_name
+        self.debug = debug
 
     def run(self):
         """
@@ -178,30 +190,25 @@ class Thread2(QThread):
         저장될 위치를 담을 변수입니다. 
         """
 
-        # start default camera
-        video = cv2.VideoCapture(self.original_folder)
-
-        # find OpenCV version
-        major_ver = cv2.__version__.split('.')[0]
-
-        # 원본 영상의 프레임을 추출합니다.
-        if int(major_ver) < 3:
-            fps = video.get(cv2.cv.CV_CAP_PROP_FPS)
-        else:
-            fps = video.get(cv2.CAP_PROP_FPS)
-
+        self.msg_sig.emit("프레임 합치기 진행중")
         # 서브 프로세서를 통해서 이미지를 영상으로 만듭니다.
+        print(self.fps)
+        print(os.path.join(self.frame_path+"합친영상", self.media_name))
+        result = subprocess.Popen(f'ffmpeg -y -f image2 -r {self.fps} -i \"{self.frame_path}_%05d.png\" -vcodec libx264 \"{os.path.join(self.frame_path+"합친영상", self.media_name)}\"', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
         
-        result = subprocess.Popen(f'ffmpeg -y -f image2 -r {fps} -i \"{frame_path}_%05d.png\" -vcodec libx264 \"{completed_folder + media_name}\"', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
-        if debug:
+        if self.debug:
             out, err = result.communicate()
         else:
             result.communicate()
 
         exitcode = result.returncode
 
-
+        
         if exitcode != 0:
-            return "MEDIA_SUM_ERROR"
+            # 오류 발생 할 때 결과입니다.
+            self.msg_sig.emit("영상 나누기 실패")
+            self.end_sig.emit(1)
         else:
-            return "MEDIA_SUM_COMPLETE"
+            # 정상 완료 될 때 결과입니다.
+            self.msg_sig.emit("영상 나누기 완료")  
+            self.end_sig.emit(0)
