@@ -82,7 +82,7 @@ ffmpeg가 설치 안된 컴퓨터에서는 동작하지 않음
 
 바뀐 UI 모습 탭1
 
-![바뀐 UI2](https://github.com/wlxo0401/video_split/blob/main/readme_img/6.PNG) 
+![바뀐 UI2](https://github.com/wlxo0401/video_split/blob/main/readme_img/7.PNG) 
 
 바뀐 UI 모습 탭2
 
@@ -103,11 +103,11 @@ ffmpeg가 설치 안된 컴퓨터에서는 동작하지 않음
 
 ```
 
-![바뀐 UI1](https://github.com/wlxo0401/video_split/blob/main/readme_img/7.PNG) 
+![바뀐 UI1](https://github.com/wlxo0401/video_split/blob/main/readme_img/8.PNG) 
 
 바뀐 UI 모습 탭1
 
-![바뀐 UI2](https://github.com/wlxo0401/video_split/blob/main/readme_img/8.PNG) 
+![바뀐 UI2](https://github.com/wlxo0401/video_split/blob/main/readme_img/9.PNG) 
 
 바뀐 UI 모습 탭2
 
