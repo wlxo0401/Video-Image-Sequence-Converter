@@ -1,6 +1,5 @@
 import os
 import subprocess
-import cv2
 
 from PyQt5 import uic
 from PyQt5 import QtCore
@@ -38,15 +37,32 @@ class mainwindow(QMainWindow, form_class):
         # 내보내기 버튼
         self.frame_sum_btn.clicked.connect(self.frame_export)
 
-
         # self.info_btn.clicked.connect(self.info)
+
+    def ui_lock(self):
+        self.load_btn.setDisabled(True)
+        self.export_btn.setDisabled(True)
+        self.frame_load_btn.setDisabled(True)
+        self.frame_sum_btn.setDisabled(True)
+        self.save_img_exp_linedeit.setDisabled(True)
+        self.frame_lineedit.setDisabled(True)
+        self.load_img_exp_linedeit.setDisabled(True)
+
+    def ui_unlock(self):
+        self.load_btn.setEnabled(True)
+        self.export_btn.setEnabled(True)
+        self.frame_load_btn.setEnabled(True)
+        self.frame_sum_btn.setEnabled(True)
+        self.save_img_exp_linedeit.setEnabled(True)
+        self.frame_lineedit.setEnabled(True)
+        self.load_img_exp_linedeit.setEnabled(True)
 
     def video_load(self):
         """
             영상 불러오기
         """
         # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
-        select_filter = "Image(*.mp4)"
+        select_filter = "Image(*.mp4 *.mpg *.mkv)"
         self.video_file_path = QFileDialog.getOpenFileName(None, "파일 선택창", self.video_file_path, select_filter)[0]
         # 비디오 이름
         self.video_name = ""
@@ -64,18 +80,21 @@ class mainwindow(QMainWindow, form_class):
             self.export_btn.setEnabled(True)
 
     def video_export(self):
-        self.set_text("작업 시작")
-        self.load_btn.setEnabled(False)
-        self.export_btn.setEnabled(False)
-        # 폴더 생성
-        self.createFolder(self.video_path, self.video_name.split(".")[0].replace(" ", "_") + "_split")
-        # 스플릿 시작
-        self.thread = Thread(self.video_file_path, self.folder, self.video_name.split(".")[0].replace(" ", "_"))
-        # 피니쉬 신호 받기
-        self.thread.msg_sig.connect(self.set_text)
-        self.thread.end_sig.connect(self.thread_end)
-        # 스타트
-        self.thread.start()
+        try:
+            self.ui_lock()
+            self.set_text("작업 시작")
+            # 폴더 생성
+            self.createFolder(self.video_path, self.video_name.split(".")[0].replace(" ", "_") + "_split")
+            # 스플릿 시작
+            self.thread = Thread(self.video_file_path, self.folder, self.video_name.split(".")[0].replace(" ", "_"), self.save_img_exp_linedeit.text())
+            # 피니쉬 신호 받기
+            self.thread.msg_sig.connect(self.set_text)
+            self.thread.end_sig.connect(self.thread_end)
+            # 스타트
+            self.thread.start()
+        except:
+            self.ui_unlock()
+            self.set_text("비디오 나누기 실패")
 
     def frame_load(self):
         # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
@@ -89,19 +108,25 @@ class mainwindow(QMainWindow, form_class):
             del self.frame_name[-1]
             self.media_name = ""
             for i in self.frame_name:
-                self.media_name += i + "_"
+                self.media_name += "_" + i
+            self.media_name = self.media_name[1:]
             print(self.media_name)
             self.frame_count_lbl.setText(str(len(self.frame_list)))
 
     def frame_export(self):
-        self.createFolder(self.frame_file_path, "합친영상")
-        frame = int(self.frame_lineedit.text())
-        self.thread2 = Thread2(frame, self.frame_file_path, self.frame_name)
-        # 피니쉬 신호 받기
-        self.thread2.msg_sig.connect(self.set_text)
-        self.thread2.end_sig.connect(self.thread_end)
-        # 스타트
-        self.thread2.start()
+        try:
+            self.ui_lock()
+            self.createFolder(self.frame_file_path, "합친영상")
+            frame = float(self.frame_lineedit.text())
+            self.thread2 = Thread2(frame, self.frame_file_path, self.media_name, self.load_img_exp_linedeit.text())
+            # 피니쉬 신호 받기
+            self.thread2.msg_sig.connect(self.set_text)
+            self.thread2.end_sig.connect(self.thread_end)
+            # 스타트
+            self.thread2.start()
+        except:
+            self.ui_unlock()
+            self.set_text("프레임 합치기 실패")
 
     def createFolder(self, folder_path, folder_name):
         # 폴더 경로, 이름.  한번에 다받아서 진행해도됨
@@ -112,27 +137,26 @@ class mainwindow(QMainWindow, form_class):
             self.set_text("폴더 생성 완료")
         else:
             self.set_text("폴더가 이미 존재합니다.")
-            return "FILE_ALREADY"
 
     def set_text(self, msg):
         self.status_lbl.setText(msg)
 
     def thread_end(self):
-        self.load_btn.setEnabled(True)
-        self.export_btn.setEnabled(True)
+        self.ui_unlock()
 
 # 이름 변경용 쓰레드        
 class Thread(QThread):
     # 사용자 정의 시그널 선언
     msg_sig = QtCore.pyqtSignal(str)
     end_sig = QtCore.pyqtSignal(int)
-    def __init__(self, target_video, save_folder_path, media_name, debug: bool=False):
+    def __init__(self, target_video, save_folder_path, media_name, exp, debug: bool=False):
         QThread.__init__(self)
 
         self.target_video = target_video
         self.save_folder_path = save_folder_path
         self.media_name = media_name
         self.debug = debug
+        self.exp = exp
 
     # QThread 수행 메소드
     def run(self):
@@ -150,7 +174,7 @@ class Thread(QThread):
         """
         # 서브 프로세서를 통해서 이미지를 추출합니다.
         self.msg_sig.emit("영상 나누기 진행중")
-        result = subprocess.Popen(f'ffmpeg -i \"{self.target_video}\" \"{self.save_folder_path}/{self.media_name}_%05d.png\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
+        result = subprocess.Popen(f'ffmpeg -i \"{self.target_video}\" \"{self.save_folder_path}/{self.media_name}_%08d.{self.exp}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
 
         if self.debug:
             out, err = result.communicate()
@@ -172,12 +196,13 @@ class Thread2(QThread):
     msg_sig = QtCore.pyqtSignal(str)
     end_sig = QtCore.pyqtSignal(int)
 
-    def __init__(self, fps, frame_path: str = "", media_name: str = "", debug=False):
+    def __init__(self, fps, frame_path, media_name, exp, debug=False):
         QThread.__init__(self)
         self.fps = fps
-        self.frame_path = frame_path
-        self.media_name = media_name
+        self.frame_path = os.path.join(frame_path, media_name)
+        self.save_path = os.path.join(frame_path, "합친영상", media_name + ".mp4")
         self.debug = debug
+        self.exp = exp
 
     def run(self):
         """
@@ -192,9 +217,7 @@ class Thread2(QThread):
 
         self.msg_sig.emit("프레임 합치기 진행중")
         # 서브 프로세서를 통해서 이미지를 영상으로 만듭니다.
-        print(self.fps)
-        print(os.path.join(self.frame_path+"합친영상", self.media_name))
-        result = subprocess.Popen(f'ffmpeg -y -f image2 -r {self.fps} -i \"{self.frame_path}_%05d.png\" -vcodec libx264 \"{os.path.join(self.frame_path+"합친영상", self.media_name)}\"', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
+        result = subprocess.Popen(f'ffmpeg -y -f image2 -r {self.fps} -i \"{self.frame_path}_%08d.{self.exp}\" -vcodec libx264 \"{self.save_path}\"', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
         
         if self.debug:
             out, err = result.communicate()
@@ -206,9 +229,9 @@ class Thread2(QThread):
         
         if exitcode != 0:
             # 오류 발생 할 때 결과입니다.
-            self.msg_sig.emit("영상 나누기 실패")
+            self.msg_sig.emit("영상 합치기 실패")
             self.end_sig.emit(1)
         else:
             # 정상 완료 될 때 결과입니다.
-            self.msg_sig.emit("영상 나누기 완료")  
+            self.msg_sig.emit("영상 합치기 완료")  
             self.end_sig.emit(0)
