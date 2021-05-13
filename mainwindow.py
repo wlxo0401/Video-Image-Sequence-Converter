@@ -1,6 +1,10 @@
 import os
 import subprocess
 import ctypes
+import cv2
+import webbrowser
+
+from moviepy.editor import VideoFileClip
 
 from PyQt5 import uic
 from PyQt5 import QtCore
@@ -12,7 +16,7 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.uic.properties import DEBUG
 
 form_class = uic.loadUiType("ui/window.ui")[0]
-
+ 
 """
 mainwindow
     __init__ : 코드 시작 부분
@@ -55,6 +59,8 @@ class mainwindow(QMainWindow, form_class):
             self.ui_action_ready()
         else:
             ctypes.windll.user32.MessageBoxW(0, "ffmpeg를 설치해주세요.", "에러", 0)
+            webbrowser.open('https://m.blog.naver.com/chandong83/222095346417')
+            
             exit()
 
     def startsetting(self):
@@ -176,6 +182,38 @@ class mainwindow(QMainWindow, form_class):
     def thread_end(self):
         self.ui_unlock()
 
+    def get_duration(self, filename):
+        clip = VideoFileClip(filename)
+        return clip.duration
+
+    def SecondsConvertor(self, duration):
+        print(duration)
+        day = int(duration / 86400)  #The int call removes the decimals.  Conveniently, it always rounds down.  int(2.9) returns 2 instead of 3, for example.
+        duration -= (day * 86400)  #This updates the value of x to show that the already counted seconds won't be double counted or anything.
+        hours = int(duration / 3600)
+        duration -= (hours * 3600)
+        minutes = int(duration / 60)
+        duration -= (minutes * 60)
+        seconds = int(duration)
+        return day, hours, minutes, seconds
+
+    def video_info(self, infilename):
+    
+        cap = cv2.VideoCapture(infilename)
+    
+        if not cap.isOpened():
+            print("could not open :", infilename)
+            exit(0)
+    
+        length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    
+        print('length : ', length)
+        print('width : ', width)
+        print('height : ', height)
+        return width, height
+
     def video_load(self):
         """
             영상 불러오기
@@ -198,10 +236,21 @@ class mainwindow(QMainWindow, form_class):
             self.video_name = os.path.splitext(os.path.basename(self.video_file_path))[0]
             # 영상 확장자
             self.video_exp = os.path.splitext(self.video_file_path)[-1]
-            
-            # 이름 저장들
+            # 영상 시간
+            _, self.duration_hour, self.duration_min, self.duration_sec = self.SecondsConvertor(self.get_duration(self.video_file_path))
+            # 영상 해상도
+            res_x, res_y = self.video_info(self.video_file_path)
+
+            # 이름 표현들
             self.name_lbl_2.setText(self.video_name)
             self.name_lbl.setText(self.video_name)
+            # 시간 표현
+            self.h_2_linedit.setText(str(self.duration_hour).zfill(2))
+            self.m_2_linedit.setText(str(self.duration_min).zfill(2))
+            self.s_2_linedit.setText(str(self.duration_sec).zfill(2))
+            # 해상도 저장
+            self.res_x_linedit.setText(str(res_x))
+            self.res_y_linedit.setText(str(res_y))
 
     def first_export(self):
         try:
@@ -209,6 +258,7 @@ class mainwindow(QMainWindow, form_class):
             self.set_text("작업 시작")
             # 폴더 생성
             self.createFolder(self.video_path, self.video_name + "_클립")
+
             ss = f"{self.h_1_linedit.text()}:{self.m_1_linedit.text()}:{self.s_1_linedit.text()}"
             to = f"{self.h_2_linedit.text()}:{self.m_2_linedit.text()}:{self.s_2_linedit.text()}"
             save_path = os.path.join(self.video_path, self.video_name + "_클립")
@@ -219,10 +269,10 @@ class mainwindow(QMainWindow, form_class):
             # 피니쉬 신호 받기
             self.thread1.msg_sig.connect(self.set_text)
             self.thread1.end_sig.connect(self.thread_end)
-            
+
             # 스타트
             self.thread1.start()
-        
+
         except:
             self.ui_unlock()
             self.set_text("비디오 나누기 실패")
@@ -297,10 +347,19 @@ class Thread1(QThread):
     def run(self):
         self.msg_sig.emit("영상 구간 나누기 진행중")
         print("영상 나누기")
+        svp = os.path.join(self.save_path, self.video_name + "_클립" + self.video_exp)
+        if os.path.isfile(svp):
+            print("파일있음")
+            os.remove(svp)
+        else:
+            print("파일없음")
         if self.first_check_num == 1:
-            result = subprocess.Popen(f'ffmpeg -ss {self.ss} -to {self.to} -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -c:v libx264 -crf 1 \"{os.path.join(self.save_path, self.video_name + "_클립" + self.video_exp)}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
+            print(self.ss)
+            print(self.to)
+            print(f'ffmpeg -ss {self.ss} -to {self.to} -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -c:v libx264 -crf 1 \"{svp}\"')
+            result = subprocess.Popen(f'ffmpeg -ss {self.ss} -to {self.to} -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -c:v libx264 -crf 1 \"{svp}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
         elif self.first_check_num == 0:
-            result = subprocess.Popen(f'ffmpeg -ss {self.ss} -to {self.to} -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -vf \"scale={self.res_x}x{self.res_y}\" -c:v libx264 -crf 1 \"{os.path.join(self.save_path, self.video_name + "_클립" + self.video_exp)}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
+            result = subprocess.Popen(f'ffmpeg -ss {self.ss} -to {self.to} -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -vf \"scale={self.res_x}x{self.res_y}\" -c:v libx264 -crf 1 \"{svp}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
 
         if self.debug:
             out, err = result.communicate()
