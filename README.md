@@ -1,4 +1,4 @@
-# video_split(이름 미정)
+# video_edit(이름 미정)
 # ver 1.0
 # 개요
 
