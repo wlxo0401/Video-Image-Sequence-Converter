@@ -28,6 +28,9 @@ mainwindow
     createFolder : 폴더 생성용 함수
     set_text : ui에 상황 알려주기 위한 함수
     thread_end : 쓰레드 끝나면 작동 공용 함수
+    get_duration : 영상 길이 가지고옴
+    seconds_convertor : 영상길이 초를 시, 분, 초로 변환
+    video_info : 영상 해상도 가지고옴
     video_load : 탭1, 3에서 사용하는 비디오 로드 함수
     first_export : 탭1 작업 시작 함수
     third_export : 탭3 작업 시작 함수
@@ -37,6 +40,10 @@ mainwindow
 Thread1 : 영상을 구간으로 나누는 쓰레드
     __init__ : 코드 시작 부분
     run : 작동 
+
+Thread2 : 영상 해상도를 변환하는 쓰레드
+    __init__ : 코드 시작 부분
+    run : 작동
 
 Thread3 : 파일 영상에서 프레임으로 만들어 주는 쓰레드
 	__init__ : 코드 시작 부분
@@ -78,6 +85,8 @@ class mainwindow(QMainWindow, form_class):
         self.res_change_checkBox.stateChanged.connect(self.first_check_change)
 
         # 2번 탭
+        self.second_load_btn.clicked.connect(self.video_load)
+        self.second_export_btn.clicked.connect(self.second_export)
 
         # 3번 탭
         self.third_load_btn.clicked.connect(self.video_load)
@@ -91,12 +100,12 @@ class mainwindow(QMainWindow, form_class):
 
     def first_check_change(self):
         if self.first_check_num == 0:
-            self.res_x_linedit.setDisabled(True)
-            self.res_y_linedit.setDisabled(True)
+            self.res_x_linedit_1.setDisabled(True)
+            self.res_y_linedit_1.setDisabled(True)
             self.first_check_num = 1 
         elif self.first_check_num == 1:
-            self.res_x_linedit.setEnabled(True)
-            self.res_y_linedit.setEnabled(True)
+            self.res_x_linedit_1.setEnabled(True)
+            self.res_y_linedit_1.setEnabled(True)
             self.first_check_num = 0
 
     def ui_lock(self):
@@ -113,10 +122,14 @@ class mainwindow(QMainWindow, form_class):
         self.s_2_linedit.setDisabled(True)
 
         self.res_change_checkBox.setDisabled(True)
-        self.res_x_linedit.setDisabled(True)
-        self.res_y_linedit.setDisabled(True)
+        self.res_x_linedit_1.setDisabled(True)
+        self.res_y_linedit_1.setDisabled(True)
 
         # 2번 탭
+        self.res_x_linedit_2.setDisabled(True)
+        self.res_y_linedit_2.setDisabled(True)
+        self.second_load_btn.setDisabled(True)
+        self.second_export_btn.setDisabled(True)
 
         # 3번 탭
         self.save_img_exp_linedeit.setDisabled(True)
@@ -146,13 +159,17 @@ class mainwindow(QMainWindow, form_class):
         self.res_change_checkBox.setEnabled(True)
 
         if self.first_check_num == 1:
-            self.res_x_linedit.setDisabled(True)
-            self.res_y_linedit.setDisabled(True)
+            self.res_x_linedit_1.setDisabled(True)
+            self.res_y_linedit_1.setDisabled(True)
         elif self.first_check_num == 0:
-            self.res_x_linedit.setEnabled(True)
-            self.res_y_linedit.setEnabled(True)
+            self.res_x_linedit_1.setEnabled(True)
+            self.res_y_linedit_1.setEnabled(True)
 
         # 2번 탭
+        self.res_x_linedit_2.setEnabled(True)
+        self.res_y_linedit_2.setEnabled(True)
+        self.second_load_btn.setEnabled(True)
+        self.second_export_btn.setEnabled(True)
 
         # 3번 탭
         self.save_img_exp_linedeit.setEnabled(True)
@@ -186,7 +203,7 @@ class mainwindow(QMainWindow, form_class):
         clip = VideoFileClip(filename)
         return clip.duration
 
-    def SecondsConvertor(self, duration):
+    def seconds_convertor(self, duration):
         print(duration)
         day = int(duration / 86400)  #The int call removes the decimals.  Conveniently, it always rounds down.  int(2.9) returns 2 instead of 3, for example.
         duration -= (day * 86400)  #This updates the value of x to show that the already counted seconds won't be double counted or anything.
@@ -237,22 +254,29 @@ class mainwindow(QMainWindow, form_class):
             # 영상 확장자
             self.video_exp = os.path.splitext(self.video_file_path)[-1]
             # 영상 시간
-            _, self.duration_hour, self.duration_min, self.duration_sec = self.SecondsConvertor(self.get_duration(self.video_file_path))
+            _, self.duration_hour, self.duration_min, self.duration_sec = self.seconds_convertor(self.get_duration(self.video_file_path))
             # 영상 해상도
             res_x, res_y = self.video_info(self.video_file_path)
 
             # 이름 표현들
+            self.name_lbl_3.setText(self.video_name)
             self.name_lbl_2.setText(self.video_name)
-            self.name_lbl.setText(self.video_name)
+            self.name_lbl_1.setText(self.video_name)
             # 시간 표현
             self.h_2_linedit.setText(str(self.duration_hour).zfill(2))
             self.m_2_linedit.setText(str(self.duration_min).zfill(2))
             self.s_2_linedit.setText(str(self.duration_sec).zfill(2))
             # 해상도 저장
-            self.res_x_linedit.setText(str(res_x))
-            self.res_y_linedit.setText(str(res_y))
+            self.res_x_linedit_1.setText(str(res_x))
+            self.res_y_linedit_1.setText(str(res_y))
+            self.res_x_linedit_2.setText(str(res_x))
+            self.res_y_linedit_2.setText(str(res_y))
 
     def first_export(self):
+        '''
+        영상을 구간으로 나누는 기능
+        해상도 변경 동시에 가능
+        '''
         try:
             self.ui_lock()
             self.set_text("작업 시작")
@@ -264,7 +288,7 @@ class mainwindow(QMainWindow, form_class):
             save_path = os.path.join(self.video_path, self.video_name + "_클립")
 
             # 탭 1 기능 쓰레드
-            self.thread1 = Thread1(self.first_check_num, ss, to, self.res_x_linedit.text(), self.res_y_linedit.text(), self.video_path, self.video_name, self.video_exp, save_path)
+            self.thread1 = Thread1(self.first_check_num, ss, to, self.res_x_linedit_1.text(), self.res_y_linedit_1.text(), self.video_path, self.video_name, self.video_exp, save_path)
 
             # 피니쉬 신호 받기
             self.thread1.msg_sig.connect(self.set_text)
@@ -277,7 +301,36 @@ class mainwindow(QMainWindow, form_class):
             self.ui_unlock()
             self.set_text("비디오 나누기 실패")
 
+    def second_export(self):
+        '''
+        해상도 변경하는 기능
+        '''
+        try:
+            self.ui_lock()
+            self.set_text("작업 시작")
+            # 폴더 생성
+            self.createFolder(self.video_path, self.video_name + "_해상도")
+            # 저장 경로
+            save_path = os.path.join(self.video_path, self.video_name + "_해상도")
+
+            # 탭 2 기능 쓰레드
+            self.thread2 = Thread2(self.res_x_linedit_2.text(), self.res_y_linedit_2.text(), self.video_path, self.video_name, self.video_exp, save_path)
+
+            # 피니쉬 신호 받기
+            self.thread2.msg_sig.connect(self.set_text)
+            self.thread2.end_sig.connect(self.thread_end)
+
+            # 스타트
+            self.thread2.start()
+
+        except:
+            self.ui_unlock()
+            self.set_text("비디오 나누기 실패")        
+
     def third_export(self):
+        '''
+        영상을 프레임으로 나누는 기능
+        '''
         try:
             self.ui_lock()
             self.set_text("작업 시작")
@@ -296,7 +349,6 @@ class mainwindow(QMainWindow, form_class):
             self.set_text("비디오 나누기 실패")
 
     def fourth_load(self):
-        # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
         self.frame_file_path = QFileDialog.getExistingDirectory(None, "파일 선택창", self.frame_file_path)
         
         if self.frame_file_path:
@@ -312,6 +364,9 @@ class mainwindow(QMainWindow, form_class):
             self.frame_count_lbl.setText(str(len(self.frame_list)))
 
     def fourth_export(self):
+        '''
+        프레임을 영상으로 바꾸는 기능
+        '''
         try:
             self.ui_lock()
             self.createFolder(self.frame_file_path, "합친영상")
@@ -370,11 +425,55 @@ class Thread1(QThread):
 
         if exitcode != 0:
             # 오류 발생 할 때 결과입니다.
-            self.msg_sig.emit("영상 나누기 실패")
+            self.msg_sig.emit("영상 구간 나누기 실패")
             self.end_sig.emit(1)
         else:
             # 정상 완료 될 때 결과입니다.
-            self.msg_sig.emit("영상 나누기 완료")  
+            self.msg_sig.emit("영상 구간 나누기 완료")  
+            self.end_sig.emit(0)
+
+class Thread2(QThread):
+    # 사용자 정의 시그널 선언
+    msg_sig = QtCore.pyqtSignal(str)
+    end_sig = QtCore.pyqtSignal(int)
+
+    def __init__(self, res_x, res_y, video_path, video_name, video_exp, save_path, debug: bool=False):
+        QThread.__init__(self)
+        self.res_x = res_x
+        self.res_y = res_y
+        self.video_path = video_path
+        self.video_name = video_name
+        self.video_exp = video_exp
+        self.save_path = save_path
+        self.debug = debug
+
+    def run(self):
+        self.msg_sig.emit("영상 구간 나누기 진행중")
+        print("영상 나누기")
+        svp = os.path.join(self.save_path, self.video_name + "_해상도" + self.video_exp)
+        if os.path.isfile(svp):
+            print("파일있음")
+            os.remove(svp)
+        else:
+            print("파일없음")
+        
+        print(f'ffmpeg -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -vf \"scale={self.res_x}x{self.res_y}\" \"{svp}\"')
+        result = subprocess.Popen(f'ffmpeg -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" -vf \"scale={self.res_x}x{self.res_y}\" \"{svp}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
+
+        if self.debug:
+            out, err = result.communicate()
+        else:
+            result.communicate()
+
+        exitcode = result.returncode
+
+        if exitcode != 0:
+            # 오류 발생 할 때 결과입니다.
+            self.msg_sig.emit("영상 해상도 변환 실패")
+            self.end_sig.emit(1)
+        else:
+            # 정상 완료 될 때 결과입니다.
+            self.msg_sig.emit("영상 해상도 변환 완료")  
             self.end_sig.emit(0)
 
 class Thread3(QThread):
@@ -396,7 +495,7 @@ class Thread3(QThread):
         """
         """
         # 서브 프로세서를 통해서 이미지를 추출합니다.
-        self.msg_sig.emit("영상 나누기 진행중")
+        self.msg_sig.emit("영상 프레임으로 나누기 진행중")
         result = subprocess.Popen(f'ffmpeg -i \"{os.path.join(self.video_path, self.video_name + self.video_exp)}\" \"{self.save_path}/{self.video_name}_%08d.{self.image_exp}\"', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True )
 
         if self.debug:
@@ -432,6 +531,11 @@ class Thread4(QThread):
         """
         self.msg_sig.emit("프레임 합치기 진행중")
         # 서브 프로세서를 통해서 이미지를 영상으로 만듭니다.
+        if os.path.isfile(self.save_path):
+            print("파일있음")
+            os.remove(self.save_path)
+        else:
+            print("파일없음")
         result = subprocess.Popen(f'ffmpeg -y -f image2 -r {self.fps} -i \"{self.frame_path}_%08d.{self.exp}\" -vcodec libx264 \"{self.save_path}\"', stdout = subprocess.PIPE, stderr = subprocess.PIPE, shell = True)
         
         if self.debug:
@@ -443,9 +547,9 @@ class Thread4(QThread):
 
         if exitcode != 0:
             # 오류 발생 할 때 결과입니다.
-            self.msg_sig.emit("영상 합치기 실패")
+            self.msg_sig.emit("프레임 합치기 실패")
             self.end_sig.emit(1)
         else:
             # 정상 완료 될 때 결과입니다.
-            self.msg_sig.emit("영상 합치기 완료")  
+            self.msg_sig.emit("프레임 합치기 완료")  
             self.end_sig.emit(0)
