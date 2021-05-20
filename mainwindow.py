@@ -236,7 +236,7 @@ class mainwindow(QMainWindow, form_class):
             영상 불러오기
         """
         # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
-        select_filter = "Image(*.mp4 *.mpg *.mkv)"
+        select_filter = "Image(*.mp4 *.mpg *.mkv *.mov)"
         self.video_file_path = QFileDialog.getOpenFileName(None, "파일 선택창", self.video_file_path, select_filter)[0]
 
         # 비디오 경로
