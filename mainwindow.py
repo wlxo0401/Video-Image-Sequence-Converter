@@ -238,7 +238,7 @@ class mainwindow(QMainWindow, form_class):
         # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
         select_filter = "Image(*.mp4 *.mpg *.mkv *.mov)"
         self.video_file_path = QFileDialog.getOpenFileName(None, "파일 선택창", self.video_file_path, select_filter)[0]
-
+        self.set_text("영상 불러오는 중")
         # 비디오 경로
         self.video_path = ""
         # 비디오 이름
@@ -271,6 +271,7 @@ class mainwindow(QMainWindow, form_class):
             self.res_y_linedit_1.setText(str(res_y))
             self.res_x_linedit_2.setText(str(res_x))
             self.res_y_linedit_2.setText(str(res_y))
+            self.set_text("영상 불러오기 완료")
 
     def first_export(self):
         '''
