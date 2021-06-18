@@ -236,7 +236,7 @@ class mainwindow(QMainWindow, form_class):
             영상 불러오기
         """
         # 필터를 이용하여 정해진 확장자만 선택이 가능하다.
-        select_filter = "Image(*.mp4 *.mpg *.mkv *.mov)"
+        select_filter = "Image(*.mp4 *.mpg *.mkv *.mov *.wmv)"
         self.video_file_path = QFileDialog.getOpenFileName(None, "파일 선택창", self.video_file_path, select_filter)[0]
         self.set_text("영상 불러오는 중")
         # 비디오 경로
@@ -449,7 +449,7 @@ class Thread2(QThread):
         self.debug = debug
 
     def run(self):
-        self.msg_sig.emit("영상 구간 나누기 진행중")
+        self.msg_sig.emit("영상 해상도 변경 진행중")
         print("영상 나누기")
         svp = os.path.join(self.save_path, self.video_name + "_해상도" + self.video_exp)
         if os.path.isfile(svp):
