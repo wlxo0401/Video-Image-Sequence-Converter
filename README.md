@@ -13,10 +13,10 @@
 The function of cutting the image into sections can create a short image. 
 Export and resolution can be changed.
 
-## Change the resolution   
+## Change the resolution   
 Ability to convert image resolution. Lowering the resolution results in image quality degradation, and increasing the resolution only increases, but there is no improvement in image quality
 
-## Split Frame
+## Split Frame
 The ability to import images and frame them (images)
 (The extension of the saved image must be entered in advance)
  
