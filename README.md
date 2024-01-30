@@ -1,57 +1,29 @@
-# video_edit(이름 미정)
+# VISC(Video Image Sequence Converter)
 # ver 1.0
-# 개요
 
->영상을 효과 및 무언가를 적용하기 위해서 이미지로 나누는 작업이
-필요한데 그 과정을 편하게 하기 위해서 만든 툴.
+# About 
+>Python Open Source for cropping images into images or into sections
 
-</br>
+# Tech Stack
+- Python
+- pyqt
+- Visual Studio Code
+  
+## Division of sections
+The function of cutting the image into sections can create a short image. 
+Export and resolution can be changed.
 
-# 기간
+## Change the resolution   
+Ability to convert image resolution. Lowering the resolution results in image quality degradation, and increasing the resolution only increases, but there is no improvement in image quality
 
-> 2021-04-12 ~ 2021-05-14    
-</br>
-
-# 도구
->Python
->
->pyqt
->
->ffmpeg
->
->VisualStudio Code
-
-</br>
-
-# 주요 기능
-
-기준일 : 2021-05-14
-
-## 구간 나누기
-영상을 불러와 구간을 나누어 다시 내보내는 기능 짧은 영상을 만들기 위해서 생각한 기능
-내보내기와 동시에 해상도를 변경 가능
-
-변경하지 않을 경우 원래 해상도로 내보내기
-
-- 구간은 영상 원래 길이 보다 작아야 효과가 생김   
-
-
-## 해상도 변경하기   
-영상 해상도를 변환 시키는 기능 
-
-- 해상도 조절시 내리면 저하가 생기고, 높히면 해상도만 커지마 개선은 없음
-
-## 프레임 나누기
-영상을 불러와 프레임(이미지)로 만드는 기능, 하나의 이미지만으로 작업을 
-진행할 때 사용하기 위해서 만듬
-
-- 저장되는 이미지의 확장자를 사전에 미리 입력해야 함
+## Split Frame
+The ability to import images and frame them (images)
+(The extension of the saved image must be entered in advance)
  
-## 프레임 합치기
-나누어진 프레임을 모두 한개로 합치어 영상으로 내보내는 기능 프레임으로 만든
-이미지에 원하는 작업을 모두 진행했다면 다시 영상으로 만들어 확인 가능
-
-- 프레임을 사전에 입력해주어야 함
+## Frame attachment
+The ability to combine divided frames into images
+(Frame must be entered in advance)
+(Must enter an extension of the image to be imported in advance)
 - 불러올 이미지의 확장자를 사전에 입력해주어야 함   
 </br>
 
